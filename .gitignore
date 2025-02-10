@@ -3,15 +3,19 @@
 # dependencies
 node_modules/
 
+
 # Expo
 .expo/
 dist/
 web-build/
 expo-env.d.ts
 
+# misc
+package-lock.json
+
 # Native
 *.orig.*
-*.jks
+*.jksgit check-ignore -v package-lock.json
 *.p8
 *.p12
 *.key
@@ -30,7 +34,7 @@ yarn-error.*
 *.pem
 
 # local env files
-.env*.local
+.env*
 
 # typescript
 *.tsbuildinfo
