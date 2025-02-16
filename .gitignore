@@ -38,3 +38,6 @@ yarn-error.*
 
 # typescript
 *.tsbuildinfo
+
+# cifar DS
+cifar-10-batches-py
