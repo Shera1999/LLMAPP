@@ -1,14 +1,23 @@
-from fastapi import FastAPI
+from io import BytesIO
+from fastapi import FastAPI, File, UploadFile
 from pydantic import BaseModel
 import torch
 import torchvision.transforms as transforms
 from PIL import Image
 from model import ImageClassifier  
-
+from fastapi.middleware.cors import CORSMiddleware
 
 # FastAPI app
 app = FastAPI()
 
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all origins 
+    allow_credentials=True,
+    allow_methods=["*"],  
+    allow_headers=["*"],  
+)
 # CIFAR-10 Class Names
 class_names = [
     "airplane", "automobile", "bird", "cat", "deer", 
@@ -29,29 +38,32 @@ transform = transforms.Compose([
 ])
 
 # Input data model
-class InputData(BaseModel):
-    image_path: str  # Assuming the client will send the image path
 
 @app.post("/predict/")
-async def predict(data: InputData):
-    # Preprocess the image
-    image = preprocess_image(data.image_path)
+async def predict(file: UploadFile = File(...)):
+    # Read the image file (received as an UploadFile)
+    image_bytes = await file.read()
+
+    # Convert bytes to a PIL image
+    image = Image.open(BytesIO(image_bytes)).convert('RGB') 
     
+    image=preprocess_image(image)
+
     # Make prediction using the model
     with torch.no_grad():
-        outputs = model(image.to(device))
+        outputs = model(image)
         probabilities = torch.nn.functional.softmax(outputs, dim=1)
         _, predicted = torch.max(outputs, 1)
-    
-    classification=class_names[predicted.item()]
- 
+
+    classification = class_names[predicted.item()]
+
     return {
         "prediction": classification,
         "probabilities": probabilities[0].tolist()
     }
 
 # Function to preprocess the image
-def preprocess_image(image_path: str):
-    image = Image.open(image_path)
+def preprocess_image(image: Image.Image):
     image = transform(image).unsqueeze(0)  # Add batch dimension
+    image = image.to(device)  # Ensure the image is on the same device as the model
     return image
