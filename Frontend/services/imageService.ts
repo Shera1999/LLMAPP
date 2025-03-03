@@ -2,7 +2,7 @@ import axios from "axios";
 import { Platform } from 'react-native';
 import { API_URL } from '@env';
 
-const url = `${API_URL}/predict/`; // Replace with your FastAPI URL
+const url = `http://10.0.0.50:8070/predict/`; // Replace with your FastAPI URL
 
 export const uploadImage = async (imageUri: string) => {
   try {
