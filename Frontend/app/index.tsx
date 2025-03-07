@@ -3,6 +3,8 @@ import { View, Text, StyleSheet, ScrollView, SafeAreaView, Dimensions } from 're
 import GalleryPicker from './components/galleryPicker';
 import { uploadImage } from '../services/imageService';
 
+const PREIDCTION_THRESHOLD = 5;// Threshold for displaying predictions
+
 type ProbabilityClass = {
   class: string;
   probability: number;
@@ -14,14 +16,15 @@ type ImageResult = {
 };
 
 const EvaluateScreen = () => {
-  const [result, setResult] = useState<ImageResult | null>(null); // State to hold result
+  const [result, setResult] = useState<ImageResult | null>(null); 
 
   const handleImageSelected = async (imageUri: string) => {
     console.log('Selected Image URI:', imageUri);
     try {
-      const response: ImageResult = await uploadImage(imageUri); // Assuming this function returns the result
+      const response: ImageResult = await uploadImage(imageUri)
       console.log('API Response:', response);
-      setResult(response); // Set the result to state
+      setResult(response); 
+
     } catch (error) {
       console.error('Error uploading image:', error);
     }
@@ -32,18 +35,21 @@ const EvaluateScreen = () => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        {/* Gallery Picker in absolute position at the center */}
+        {/* Gallery Picker */}
         <View style={[styles.pickerContainer, { top: windowHeight * 0.4 - 50 }]}>
           <GalleryPicker onImageSelected={handleImageSelected} />
         </View>
 
-        {/* Results section positioned at the bottom */}
+        {/* Results section */}
         {result && (
           <View style={styles.resultsSection}>
             {/* Display Prediction */}
-            <Text style={styles.prediction}>Prediction: {result.prediction}</Text>
+            <Text style={styles.prediction}>Prediction: {result?.class_probabilities
+              .filter(prob => prob.probability * 100 > PREIDCTION_THRESHOLD)
+              .map(prob => prob.class)
+              .join(', ') || 'No classification'}</Text>
 
-            {/* Render the table with class probabilities */}
+            {/* Table with class probabilities */}
             {result.class_probabilities && (
               <View style={styles.tableWrapper}>
                 <ScrollView style={styles.tableContainer} 
