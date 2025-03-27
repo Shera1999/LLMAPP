@@ -8,6 +8,7 @@ import uvicorn
 from model import ImageClassifier  
 from fastapi.middleware.cors import CORSMiddleware
 import os
+import json
 
 # Load environment variables
 load_dotenv()
@@ -28,15 +29,20 @@ app.add_middleware(
 )
 
 # CIFAR-10 Class Names
-class_names = [
-    "airplane", "automobile", "bird", "cat", "deer", 
-    "dog", "frog", "horse", "ship", "truck"
-]
+#class_names = [
+#    "airplane", "automobile", "bird", "cat", "deer", 
+#    "dog", "frog", "horse", "ship", "truck"
+#]
+
+
+with open("data/processed/class_labels.json", "r") as f:
+    class_names = json.load(f) 
 
 # Load the trained model from model.pth file
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model = ImageClassifier().to(device)
-model.load_state_dict(torch.load("model.pth", map_location=torch.device('cpu')))
+# Ensure ImageClassifier is initialized with 100 classes before loading model weights
+model = ImageClassifier(num_classes=100).to(device)
+model.load_state_dict(torch.load("model.pth", map_location=device))
 model.eval()
 
 # Define the transform for input image preprocessing
@@ -84,6 +90,7 @@ async def predict(file: UploadFile = File(...)):
 
 # Function to preprocess the image
 def preprocess_image(image: Image.Image):
+    image = image.convert('RGB')
     image = transform(image).unsqueeze(0)  # Add batch dimension
     image = image.to(device)  # Ensure the image is on the same device as the model
     return image

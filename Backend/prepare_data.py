@@ -13,14 +13,15 @@ os.makedirs(PROCESSED_DATA_DIR, exist_ok=True)
 
 # Define image transformations
 transform = transforms.Compose([
+    transforms.Resize((32, 32)),  
     transforms.ToTensor(),  # Convert to tensor
     transforms.Normalize((0.5,), (0.5,))  # Normalize to [-1, 1]
 ])
 
 # Download CIFAR-10 dataset
 print("Downloading CIFAR-10 dataset...")
-train_dataset = torchvision.datasets.CIFAR10(root=RAW_DATA_DIR, train=True, download=True, transform=transform)
-test_dataset = torchvision.datasets.CIFAR10(root=RAW_DATA_DIR, train=False, download=True, transform=transform)
+train_dataset = torchvision.datasets.CIFAR100(root=RAW_DATA_DIR, train=True, download=True, transform=transform)
+test_dataset = torchvision.datasets.CIFAR100(root=RAW_DATA_DIR, train=False, download=True, transform=transform)
 
 # Split train dataset into training and validation sets
 train_size = int(0.8 * len(train_dataset))

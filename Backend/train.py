@@ -7,7 +7,7 @@ from model import ImageClassifier
 
 # Hyperparameters
 BATCH_SIZE = 32
-EPOCHS = 10
+EPOCHS = 50
 LEARNING_RATE = 0.001
 
 # Define Data Loaders
@@ -16,7 +16,16 @@ val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False)
 
 # Initialize Model, Loss, Optimizer
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model = ImageClassifier().to(device)
+model = ImageClassifier(num_classes=100).to(device)
+
+
+# Modify model output layer (inside `self.model`)
+if hasattr(model.model, "fc"):  # ResNet-based models
+    model.model.fc = nn.Linear(model.model.fc.in_features, 100).to(device)
+else:
+    raise AttributeError("Could not find the final classification layer in ImageClassifier.")
+
+
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
 
